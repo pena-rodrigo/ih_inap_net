@@ -15,17 +15,17 @@ from scipy import signal
 ##########################################################################################
 raster=0
 cross=1
-trials=10
+trials=100
 
 dt = 0.1 * ms
 defaultclock.dt = dt
 seed_per=1000
 
-NE = 100
+NE = 2
 gamma = 0.25
-NI = int(gamma*NE)
-CE = 10
-CI = int(gamma*CE)
+NI = 2 #int(gamma*NE)
+CE = 1
+CI = 1 #int(gamma*CE)
 
 simulation_time = 2000 * ms
 transient = 0*ms
@@ -47,7 +47,7 @@ rrst_e = 0
 u=-2.3
 # vary from 30-190
 rtaue = 40*ms #80*ms #40*ms #160*ms #80*ms
-tau_I=0.04*ms
+tau_I=0.04*ms #0.04*ms
 
 #model2 parameters
 # El=-75.
@@ -67,7 +67,7 @@ tau_I=0.04*ms
 # J = 0.3 #5.0 #0.3 
 
 #syn parameters
-J=3.0 #3.0
+J=6.0 #3.0
 g=4.5
 
 
@@ -104,7 +104,7 @@ eqs1 = '''
         rinfe= 1.0/(1+exp((v-Vhlf_h)/Vslp_h)) : 1
         dv/dt = (-Gl*(v - El) + u - Gp*pinf*(v-Ena) - Gh*r*(v-Eh) + sqrt(2*tau_I)*xi) / ms  : 1
         dr/dt =  (rinfe-r)/rtaue : 1
-        Gh : 1 
+        Gh : 1
         ''' 
 
 reset_eqs='''
@@ -247,9 +247,16 @@ cxy = np.divide(cxy,trials)
 # plt.xlim([-20,20])
 # plt.show()
 
-for i in range(12):
-        for j in range(12):
-                plt.subplot(12,12,(i+j*12+1))
+# for i in range(12):
+#         for j in range(12):
+#                 plt.subplot(12,12,(i+j*12+1))
+#                 plt.plot(lags,cxy[i,j,:])
+#                 plt.xlim([-40,40])
+# plt.show()
+
+for i in range(4):
+        for j in range(4):
+                plt.subplot(4,4,(i+j*4+1))
                 plt.plot(lags,cxy[i,j,:])
-                plt.xlim([-40,40])
+                plt.xlim([-20,20])
 plt.show()
