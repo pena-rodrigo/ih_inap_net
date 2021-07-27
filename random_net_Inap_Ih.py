@@ -9,17 +9,20 @@ from brian2 import *
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
+import pylab
+pylab.rcParams['savefig.dpi'] = 120
 
 ##########################################################################################
 # Parameters
 ##########################################################################################
 raster=0
 cross=1
-trials=100
+connmtx=0
+trials=300
 
 dt = 0.1 * ms
 defaultclock.dt = dt
-seed_per=1000
+seed_per=8300 
 
 NE = 2
 gamma = 0.25
@@ -88,15 +91,43 @@ def fixed_indegree(indegree,n_post_pop,n_pre_pop,seed):
     postsyn_indices = postsyn_indices.astype(int)
     return presyn_indices, postsyn_indices
 
-presyn_indices,postsyn_indices=fixed_indegree(CE,(NE+NI),NE,seed_per)
-presyn_indices,postsyn_indices=fixed_indegree(CI,(NE+NI),NI,seed_per)
+connM = np.zeros((NE+NI,NE+NI))
+presyn_indices,postsyn_indices=fixed_indegree(CE,(NE+NI),(NE+NI),seed_per*2)
+for i in range(len(presyn_indices)):
+        connM[presyn_indices[i],postsyn_indices[i]]=1
+
+
+'''Connectivity figure'''
+if(connmtx):
+        plt.figure(figsize=(10,8))
+        im=plt.imshow(connM,origin='upper',aspect='equal')
+        ax=plt.gca()
+        # Major ticks
+        ax.set_xticks(np.arange(0, NE+NI, 1))
+        ax.set_yticks(np.arange(0, NE+NI, 1))
+        # Labels for major ticks
+        ax.set_xticklabels(np.arange(1, NE+NI+1, 1))
+        ax.set_yticklabels(np.arange(1, NE+NI+1, 1))
+        # # Minor ticks
+        ax.set_xticks(np.arange(-.5, 3.5, 1), minor=True)
+        ax.set_yticks(np.arange(-.5, 3.5, 1), minor=True)
+        ax.grid(which='minor', color='k', linestyle='-', linewidth=4)
+        plt.xlabel('postsynaptic')
+        plt.ylabel('presynaptic')
+        for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
+                ax.get_xticklabels() + ax.get_yticklabels()):
+                item.set_fontsize(20)
+        plt.tight_layout()              
+        plt.savefig('adj.png')
+        plt.savefig('adj.eps')   
+        # plt.show()
 
 #reset seed for simulation
 seed()
 np.random.seed()
 
 ##########################################################################################
-# Neuron
+# Neuron model
 ##########################################################################################
 
 eqs1 = '''
@@ -127,41 +158,10 @@ pop_i.Gh=3.5
 ##########################################################################################
 #  Connections
 ##########################################################################################
-#E indexes
-con_e = Synapses(pop_e, neurons, on_pre='v += J',dt=dt,delay=1.5*ms)
+#indexes
+con_e = Synapses(neurons, neurons, on_pre='v += J',dt=dt,delay=1.5*ms)
 con_e.connect(i=presyn_indices,j=postsyn_indices)  
     
-#I indexes
-con_i = Synapses(pop_i, neurons, on_pre='v += J',dt=dt,delay=1.5*ms) #on_pre='v -= J*g'
-con_i.connect(i=presyn_indices,j=postsyn_indices)                 
-
-
-##########################################################################################
-# Input load
-##########################################################################################
-
-# x = pd.read_csv('pre_corrected_if.dat', header=None,delimiter='   ')
-# inj = []
-# values_syn = []
-# for i in range(Nneurons):
-#     ind = range(len(np.asarray(x[i])))
-#     times = np.nonzero((ind*np.asarray(x[i])))[0]*dt
-#     indices = np.zeros((1, len(times)))
-#     inj_spikes = SpikeGeneratorGroup(1, indices[0], times)
-#     inj.append(inj_spikes)
-#     values_syn.append(Synapses(inj[i], quadra_neurons[i:i+1], on_pre='v += J', delay=1.5*ms))
-
-# print('done creating synapses')
-##########################################################################################
-# Connecting
-##########################################################################################
-# keys_synapses = range(len(values_syn))
-# syn_dict = dict(zip(keys_synapses, values_syn))
-
-# for i in range(len(syn_dict)):
-#         syn_dict[i].connect()
-
-# print('done connecting synapses')
 ##########################################################################################
 # Running/recording
 ##########################################################################################
@@ -169,11 +169,7 @@ con_i.connect(i=presyn_indices,j=postsyn_indices)
 ratemon = PopulationRateMonitor(neurons)
 spkmon = SpikeMonitor(neurons)
 
-# rec_v = StateMonitor(quadra_neurons,'v',record=True)
-# rec_r = StateMonitor(quadra_neurons,'r',record=True)
-
-
-net = Network(neurons, con_e, con_i, spkmon, ratemon) #, rec_v, rec_r
+net = Network(neurons, con_e, spkmon, ratemon) #, rec_v, rec_r
 
 cxy = np.zeros((NE+NI,NE+NI,39999))
 
@@ -212,8 +208,8 @@ for kk in range(trials):
                 lags = np.arange(-(simulation_time/ms) ,(simulation_time/ms)-dt/ms,dt/ms)
                 for i in range(NE+NI):
                         for j in range(NE+NI):
-                                x = spike_train[i,:]
-                                y = spike_train[j,:]
+                                x = spike_train[j,:]
+                                y = spike_train[i,:]
                                 cxy[i,j,:] = cxy[i,j,:] + signal.fftconvolve(x, y[::-1], mode='full') 
                                 # plt.subplot(12,12,i + j*i)
                                 # plt.figure()
@@ -223,40 +219,22 @@ for kk in range(trials):
         net.restore()
 cxy = np.divide(cxy,trials)
 
-# net.store()
-#         for kk in range()
-#         net.run(simulation_time, report='text')
-
-#         spks = spike_quadra.spike_trains()
-#         spike_train = np.zeros(
-#         (Nneurons, int((simulation_time/ms)/(dt/ms))))  # to be recorded
-#         for i in range(Nneurons):
-#                 x = np.zeros(int((simulation_time/ms)/(dt/ms)))
-#                 a = ((spks[i])/ms)/(dt/ms) - transient/dt  # /(defaultclock.dt//ms)
-#                 x[a.astype(int)] = 1/(dt/ms)
-#                 spike_train[i, :] = x
-
-#         np.savetxt('post_model1_tauh' + str(kk) + '.dat',spike_train.T)
-#         net.restore()
-# y = spks.t/ms
-# x = spks.i
-# a = numpy.array([x,y])
-# numpy.savetxt('raster_g3_vex_vth25_D2_AR.dat',a.transpose())
-
-# plt.plot(lags,cxy[4,0,:])
-# plt.xlim([-20,20])
-# plt.show()
-
-# for i in range(12):
-#         for j in range(12):
-#                 plt.subplot(12,12,(i+j*12+1))
-#                 plt.plot(lags,cxy[i,j,:])
-#                 plt.xlim([-40,40])
-# plt.show()
-
-for i in range(4):
-        for j in range(4):
-                plt.subplot(4,4,(i+j*4+1))
-                plt.plot(lags,cxy[i,j,:])
-                plt.xlim([-20,20])
-plt.show()
+if(cross):
+        plt.figure(figsize=(10,8))
+        for i in range(4):
+                for j in range(4):
+                        ax=plt.subplot(4,4,(i+j*4+1)) #
+                        plt.plot(lags,cxy[j,i,:])
+                        plt.xlim([-10,10])
+                        # plt.ylim([0,300])
+                        if(i==0):
+                                plt.ylabel(r'$c_{xy}(\tau)$')
+                        if(j==3):
+                                plt.xlabel(r'$\tau$ [ms]')  
+                        for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
+                                ax.get_xticklabels() + ax.get_yticklabels()):
+                                item.set_fontsize(20)
+        plt.tight_layout()              
+        plt.savefig('cross.png')
+        plt.savefig('cross.eps')             
+        # plt.show()
