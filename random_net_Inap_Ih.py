@@ -11,6 +11,8 @@ import numpy as np
 from scipy import signal
 import pylab
 pylab.rcParams['savefig.dpi'] = 120
+from detect_peaks import *
+from scipy.signal import savgol_filter   
 
 ##########################################################################################
 # Parameters
@@ -18,14 +20,13 @@ pylab.rcParams['savefig.dpi'] = 120
 raster=0
 cross=1
 connmtx=0
-trials=300
+trials=100
 
 dt = 0.1 * ms
 defaultclock.dt = dt
 seed_per=8300 
 
 NE = 2
-gamma = 0.25
 NI = 2 #int(gamma*NE)
 CE = 1
 CI = 1 #int(gamma*CE)
@@ -118,9 +119,9 @@ if(connmtx):
                 ax.get_xticklabels() + ax.get_yticklabels()):
                 item.set_fontsize(20)
         plt.tight_layout()              
-        plt.savefig('adj.png')
-        plt.savefig('adj.eps')   
-        # plt.show()
+        # plt.savefig('adj.png')
+        # plt.savefig('adj.eps')   
+        plt.show()
 
 #reset seed for simulation
 seed()
@@ -235,6 +236,21 @@ if(cross):
                                 ax.get_xticklabels() + ax.get_yticklabels()):
                                 item.set_fontsize(20)
         plt.tight_layout()              
-        plt.savefig('cross.png')
-        plt.savefig('cross.eps')             
-        # plt.show()
+        # plt.savefig('cross.png')
+        # plt.savefig('cross.eps')             
+        plt.show()
+
+plt.figure(figsize=(10,8))
+for i in range(4):
+        for j in range(4):
+                ax=plt.subplot(4,4,(i+j*4+1))
+                yhat = savgol_filter(cxy[j,i,:], 9, 3)
+                ids=detect_peaks(yhat,mpd=25,mph=50)
+                ids=ids[ids>20000]
+                ids=ids[ids<20100]
+                plt.plot(lags[ids],yhat[ids],'x')
+                plt.plot(lags,yhat)
+                plt.xlim([-10,10])
+                print(lags[ids])
+                print(yhat[ids])
+plt.show()
