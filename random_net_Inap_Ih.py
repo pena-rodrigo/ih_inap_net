@@ -240,6 +240,14 @@ if(cross):
         # plt.savefig('cross.eps')             
         plt.show()
 
+
+
+case1_lags = []
+case1_height = [] 
+case2_lags = []
+case2_height = [] 
+positive = 0
+negative = 0
 plt.figure(figsize=(10,8))
 for i in range(4):
         for j in range(4):
@@ -253,4 +261,33 @@ for i in range(4):
                 plt.xlim([-10,10])
                 print(lags[ids])
                 print(yhat[ids])
+                if(i in postsyn_indices[where(presyn_indices==j)] and i > 1):
+                        if(len(ids)==1):
+                                positive += 1
+                        else:
+                                negative +=1
+                                print(i)
+                                print(j)
+                elif(i in postsyn_indices[where(presyn_indices==j)] and i <= 1):
+                        if(len(ids)==2):
+                                positive += 1
+                        else:
+                                negative +=1
+                                print(i)
+                                print(j)                           
+                if(len(ids)==1):
+                        case1_lags.append(lags[ids].item())
+                        case1_height.append(yhat[ids].item()) 
+                elif(len(ids)==2):
+                        case2_lags.append(lags[ids][0])
+                        case2_height.append(yhat[ids][0]) 
+                        case2_lags.append(lags[ids][1])
+                        case2_height.append(yhat[ids][1]) 
+
 plt.show()
+
+
+case1 = np.array((case1_lags,case1_height))
+np.savetxt('case1.txt',case1)
+case2 = np.array((case2_lags,case2_height))
+np.savetxt('case2.txt',case1)
