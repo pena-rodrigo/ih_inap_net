@@ -93,12 +93,14 @@ def fixed_indegree(indegree,n_post_pop,n_pre_pop,seed):
 
 case1_lags = []
 case1_height = [] 
-case2_lags = []
-case2_height = [] 
+case2_lags1 = []
+case2_height1 = []
+case2_lags2 = []
+case2_height2 = [] 
 positive = 0
 negative = 0
 numcons = 0
-for seed_per in range(1):
+for seed_per in range(200):
 # seed_per=8300     
 
         connM = np.zeros((NE+NI,NE+NI))
@@ -282,18 +284,20 @@ for seed_per in range(1):
                                 case1_lags.append(lags[ids].item())
                                 case1_height.append(yhat[ids].item()) 
                         elif(len(ids)==2):
-                                case2_lags.append(lags[ids][0])
-                                case2_height.append(yhat[ids][0]) 
-                                case2_lags.append(lags[ids][1])
-                                case2_height.append(yhat[ids][1]) 
+                                case2_lags1.append(lags[ids][0])
+                                case2_height1.append(yhat[ids][0]) 
+                                case2_lags2.append(lags[ids][1])
+                                case2_height2.append(yhat[ids][1]) 
 
         # plt.show()
         numcons += len(presyn_indices)
 
 
 detections = np.array((numcons,positive,negative))
-np.savetxt('detections.txt',detections.T)
+np.savetxt('detections.dat',detections.T)
 case1 = np.array((case1_lags,case1_height))
-np.savetxt('case1.txt',case1.T)
-case2 = np.array((case2_lags,case2_height))
-np.savetxt('case2.txt',case2.T)
+np.savetxt('case1.dat',case1.T)
+case2 = np.array((case2_lags1,case2_height1))
+np.savetxt('case2pk1.dat',case2.T)
+case2 = np.array((case2_lags2,case2_height2))
+np.savetxt('case2pk2.dat',case2.T)
