@@ -21,7 +21,7 @@ raster=0
 cross=1
 connmtx=0
 trials=100
-sim_num=2
+sim_num=1
 
 dt = 0.1 * ms
 defaultclock.dt = dt
@@ -35,40 +35,36 @@ simulation_time = 2000 * ms
 transient = 0*ms
 
 #model1 parameters
-El=-65
-Ena = 55
-Eh = -20
-Gl=0.5
-Gp = 0.5
-# Gh = 1.5 #3.5 #1.5
-Vhlf_p = -38.0
-Vslp_p = 6.5
-Vhlf_h = -79.2
-Vslp_h = 9.78
-vth = -45
-vr  = -80
-rrst_e = 0
-u=-2.3
-# vary from 30-190
-rtaue = 40*ms #80*ms #40*ms #160*ms #80*ms
+# El1=-65
+# Ena1 = 55
+# Eh1 = -20
+# Gl1=0.5
+# Vhlf_p1 = -38.0
+# Vslp_p1 = 6.5
+# Vhlf_h1 = -79.2
+# Vslp_h1 = 9.78
+# vth1 = -45
+# vr1  = -80
+# rrst_e1 = 0
+# u1=-2.3
+# # vary from 30-190
+rtaue1 = 40*ms #80*ms #40*ms #160*ms #80*ms
 tau_I=0.04*ms #0.04*ms
 
 #model2 parameters
-# El=-75.
-# Ena = 42.
-# Eh = -26.
-# u=-0.6
-# Gl=0.3
-# Gp = 0.08
-# Gh = 1.5
-# Vhlf_p = -54.8
-# Vslp_p = 4.4
-# Vhlf_h = -74.2
-# Vslp_h = 7.2
-# vth = -51.
-# vr  = -75.
-# rrst_e = 0.0
-# J = 0.3 #5.0 #0.3 
+El2=-75.
+Ena2 = 42.
+Eh2 = -26.
+u2=-0.6
+Gl2=0.3
+Gp2 = 0.08
+Gh2 = 1.5
+Vhlf_p2 = -54.8
+Vslp_p2 = 4.4
+Vhlf_h2 = -74.2
+Vslp_h2 = 7.2
+vth2 = -51.
+vr2  = -75.
 
 #syn parameters
 J=6.0 #3.0
@@ -147,20 +143,33 @@ for seed_per in range(sim_num):
         ##########################################################################################
 
         eqs1 = '''
-                pinf = 1.0/(1+exp(-(v-Vhlf_p)/Vslp_p)) : 1
-                rinfe= 1.0/(1+exp((v-Vhlf_h)/Vslp_h)) : 1
-                dv/dt = (-Gl*(v - El) + u - Gp*pinf*(v-Ena) - Gh*r*(v-Eh) + sqrt(2*tau_I)*xi) / ms  : 1
-                dr/dt =  (rinfe-r)/rtaue : 1
+                pinf = 1.0/(1+exp(-(v-Vhlf_p1)/Vslp_p1)) : 1
+                rinfe= 1.0/(1+exp((v-Vhlf_h1)/Vslp_h1)) : 1
+                dv/dt = (-Gl1*(v - El1) + u1 - Gp*pinf*(v-Ena1) - Gh*r*(v-Eh1) + sqrt(2*tau_I)*xi) / ms  : 1
+                dr/dt =  (rinfe-r)/rtaue1 : 1
                 Gh : 1
+                Gp : 1
+                El1 : 1
+                Ena1 : 1
+                Eh1 : 1
+                Gl1 : 1
+                Vhlf_p1 : 1
+                Vslp_p1 : 1
+                Vhlf_h1 : 1
+                Vslp_h1 : 1
+                vth1 : 1
+                vr1  : 1
+                rrst_e1 : 1
+                u1 : 1
                 ''' 
 
-        reset_eqs='''
-                v=vr
-                r=rrst_e
+        reset_eqs1='''
+                v=vr1
+                r=rrst_e1
                 '''
 
         neurons = NeuronGroup(NE+NI, eqs1, method='euler', dt=dt,
-                                threshold='v>=vth', reset=reset_eqs)
+                                threshold='v>=vth1', reset=reset_eqs1)
         pop_e = neurons[:NE]
         pop_i = neurons[NE:(NE+NI)]                             
 
@@ -168,8 +177,35 @@ for seed_per in range(sim_num):
         neurons.v = -60
         neurons.r = 0
 
-        pop_e.Gh=1.5
-        pop_i.Gh=3.5
+        pop_e.Gh=3.5
+        pop_e.Gp = 0.5
+        pop_e.El1=-65
+        pop_e.Ena1 = 55
+        pop_e.Eh1 = -20
+        pop_e.Gl1=0.5
+        pop_e.Vhlf_p1 = -38.0
+        pop_e.Vslp_p1 = 6.5
+        pop_e.Vhlf_h1 = -79.2
+        pop_e.Vslp_h1 = 9.78
+        pop_e.vth1 = -45
+        pop_e.vr1  = -80
+        pop_e.rrst_e1 = 0
+        pop_e.u1=-2.3
+
+        pop_i.Gh=1.5
+        pop_i.Gp = 0.08
+        pop_i.El1=-75.
+        pop_i.Ena1 = 42.
+        pop_i.Eh1 = -26.
+        pop_i.Gl1=0.3
+        pop_i.Vhlf_p1 = -54.8
+        pop_i.Vslp_p1 = 4.4
+        pop_i.Vhlf_h1 = -74.2
+        pop_i.Vslp_h1 = 7.2
+        pop_i.vth1 = -51.
+        pop_i.vr1  = -75.
+        pop_i.rrst_e1 = 0
+        pop_i.u1=-0.6
 
         ##########################################################################################
         #  Connections
@@ -247,5 +283,48 @@ for seed_per in range(sim_num):
                         crss.append(yhat)
                         lbs.append(label)
 
-np.savetxt('crss.dat',crss)
-np.savetxt('lbs.dat',lbs)
+# np.savetxt('crss.dat',crss)
+# np.savetxt('lbs.dat',lbs)
+case1_lags = []
+case1_height = [] 
+case2_lags = []
+case2_height = [] 
+positive = 0
+negative = 0
+plt.figure(figsize=(10,8))
+for i in range(4):
+        for j in range(4):
+                ax=plt.subplot(4,4,(i+j*4+1))
+                yhat = savgol_filter(cxy[j,i,:], 9, 3)
+                ids=detect_peaks(yhat,mpd=25,mph=50)
+                ids=ids[ids>20000]
+                ids=ids[ids<20100]
+                plt.plot(lags[ids],yhat[ids],'x')
+                plt.plot(lags,yhat)
+                plt.xlim([-10,10])
+                print(lags[ids])
+                print(yhat[ids])
+                if(i in postsyn_indices[where(presyn_indices==j)] and i > 1):
+                        if(len(ids)==1):
+                                positive += 1
+                        else:
+                                negative +=1
+                                print(i)
+                                print(j)
+                elif(i in postsyn_indices[where(presyn_indices==j)] and i <= 1):
+                        if(len(ids)==2):
+                                positive += 1
+                        else:
+                                negative +=1
+                                print(i)
+                                print(j)                           
+                if(len(ids)==1):
+                        case1_lags.append(lags[ids].item())
+                        case1_height.append(yhat[ids].item()) 
+                elif(len(ids)==2):
+                        case2_lags.append(lags[ids][0])
+                        case2_height.append(yhat[ids][0]) 
+                        case2_lags.append(lags[ids][1])
+                        case2_height.append(yhat[ids][1]) 
+
+plt.show()
