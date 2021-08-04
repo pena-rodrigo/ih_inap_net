@@ -21,7 +21,7 @@ raster=0
 cross=1
 connmtx=0
 trials=100
-sim_num=2
+sim_num=100
 
 dt = 0.1 * ms
 defaultclock.dt = dt
