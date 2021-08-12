@@ -67,7 +67,7 @@ vth2 = -51.
 vr2  = -75.
 
 #syn parameters
-J=6.0 #3.0
+J=6.0 #6.0 #3.0
 g=4.5
 
 
@@ -177,7 +177,7 @@ for seed_per in range(sim_num):
         neurons.v = -60
         neurons.r = 0
 
-        pop_e.Gh=3.5
+        pop_e.Gh=1.5
         pop_e.Gp = 0.5
         pop_e.El1=-65
         pop_e.Ena1 = 55
@@ -295,7 +295,7 @@ plt.figure(figsize=(10,8))
 for i in range(4):
         for j in range(4):
                 ax=plt.subplot(4,4,(i+j*4+1))
-                yhat = savgol_filter(cxy[j,i,:], 9, 3)
+                yhat = cxy[j,i,:]#savgol_filter(cxy[j,i,:], 9, 3)
                 ids=detect_peaks(yhat,mpd=25,mph=50)
                 ids=ids[ids>20000]
                 ids=ids[ids<20100]
